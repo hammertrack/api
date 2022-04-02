@@ -1,0 +1,37 @@
+version: "3.9"
+services:
+  cassandra:
+    build: ../tracker/internal/database
+    restart: always
+    ports:
+      - "9042:9042"
+    volumes:
+      - ../tracker/cassandra:/var/lib/cassandra
+    networks:
+      - app
+    environment:
+      CASSANDRA_CLUSTER_NAME: ${DB_CLUSTER_NAME}
+      DB_KEYSPACE: ${DB_KEYSPACE}
+
+  tracker:
+    environment:
+      DB_HOST: cassandra
+      DB_USER: ${DB_USER}
+      DB_NAME: ${DB_NAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PORT: "9042"
+      DB_KEYSPACE: ${DB_KEYSPACE}
+      API_PORT: ${API_PORT}
+    depends_on:
+      - cassandra
+    build:
+      context: .
+      args:
+        API_PORT: ${API_PORT}
+    ports:
+      - "${API_PORT}:${API_PORT}"
+    networks:
+      - app
+
+networks:
+  app:

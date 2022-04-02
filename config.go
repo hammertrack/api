@@ -1,0 +1,82 @@
+package main
+
+import (
+	"os"
+	"reflect"
+	"strconv"
+
+	"github.com/hammertrack/tracker/errors"
+	"github.com/joho/godotenv"
+)
+
+var (
+	APIPort              string
+	DBHost               string
+	DBKeyspace           string
+	DBPort               string
+	DBUser               string
+	DBPassword           string
+	DBConnTimeoutSeconds int
+)
+
+type SupportStringconv interface {
+	~int | ~int64 | ~float32 | ~string | ~bool
+}
+
+func conv(v string, to reflect.Kind) any {
+	var err error
+
+	if to == reflect.String {
+		return v
+	}
+
+	if to == reflect.Bool {
+		if bool, err := strconv.ParseBool(v); err == nil {
+			return bool
+		}
+	}
+
+	if to == reflect.Int {
+		if int, err := strconv.Atoi(v); err == nil {
+			return int
+		}
+	}
+
+	if to == reflect.Int64 {
+		if i64, err := strconv.ParseInt(v, 10, 64); err == nil {
+			return i64
+		}
+	}
+
+	if to == reflect.Float32 {
+		if f32, err := strconv.ParseFloat(v, 32); err == nil {
+			return f32
+		}
+	}
+
+	errors.WrapFatalWithContext(err, struct {
+		EnvKey string
+	}{v})
+	return nil
+}
+
+func Env[T SupportStringconv](key string, def T) T {
+	if v, ok := os.LookupEnv(key); ok {
+		return conv(v, reflect.TypeOf(def).Kind()).(T)
+	}
+	return def
+}
+
+func LoadConfig() {
+	if err := godotenv.Load(); err != nil {
+		errors.WrapFatal(err)
+	}
+
+	APIPort = Env("API_PORT", "3000")
+	DBHost = Env("DB_HOST", "127.0.0.1")
+	DBKeyspace = Env("DB_KEYSPACE", "hammertrack")
+	DBPort = Env("DB_PORT", "5200")
+	DBUser = Env("DB_USER", "tracker")
+	DBPassword = Env("DB_PASSWORD", "unsafepassword")
+	DBConnTimeoutSeconds = Env("DB_CONN_TIMEOUT_SECONDS", 20)
+}
