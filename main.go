@@ -7,6 +7,8 @@ import (
 	"syscall"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/compress"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/hammertrack/tracker/errors"
 	"github.com/hammertrack/tracker/logger"
 )
@@ -40,6 +42,15 @@ func main() {
 	// Bans of the the channel
 	v1.Get("/ban/channel/:channel", b.ChannelEndpoint)
 
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "https://hammertrack.com, http://127.0.0.1:3000",
+		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowMethods: "GET",
+	}))
+
+	app.Use(compress.New(compress.Config{
+		Level: compress.LevelBestSpeed,
+	}))
 	app.Use(useSecurity)
 	app.Use(use404)
 

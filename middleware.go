@@ -5,7 +5,8 @@ import "github.com/gofiber/fiber/v2"
 func useSecurity(ctx *fiber.Ctx) error {
 	ctx.Set("X-Frame-Options", "SAMEORIGIN")
 	ctx.Set("X-DNS-Prefetch-Control", "off")
-	ctx.Set("Strict-Transport-Security", "max-age=5184000")
+	// TODO - maybe we should request HSTS preload in the future: https://hstspreload.org
+	ctx.Set("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 	return ctx.Next()
 }
 
