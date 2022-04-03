@@ -36,19 +36,28 @@ const (
 )
 
 type Ban struct {
-	Channel    string           `json:"ch"`
-	Username   string           `json:"usr"`
-	At         time.Time        `json:"ts"`
-	Recent     []string         `json:"msgs"`
-	Subscribed SubscribedStatus `json:"sub"`
+	Channel    string           `json:"ch,omitempty"`
+	Username   string           `json:"usr,omitempty"`
+	At         time.Time        `json:"ts,omitempty"`
+	Recent     []string         `json:"msgs,omitempty"`
+	Subscribed SubscribedStatus `json:"sub,omitempty"`
+}
+
+type Pagination struct {
+	After string `json:"after,omitempty"`
+}
+
+type ManyBan struct {
+	Data       []Ban
+	Pagination *Pagination
 }
 
 type Channel string
 
 type Driver interface {
 	Channels() ([]Channel, error)
-	BansByUser(username string) ([]Ban, error)
-	BansByChannel(username string) ([]Ban, error)
+	BansByUser(username string, after Cursor) (*ManyBan, error)
+	BansByChannel(username string, after Cursor) (*ManyBan, error)
 	Close() error
 }
 
@@ -60,12 +69,12 @@ func (s *Storage) Channels() ([]Channel, error) {
 	return s.driver.Channels()
 }
 
-func (s *Storage) BansByUser(username string) ([]Ban, error) {
-	return s.driver.BansByUser(username)
+func (s *Storage) BansByUser(username string, cursor Cursor) (*ManyBan, error) {
+	return s.driver.BansByUser(username, cursor)
 }
 
-func (s *Storage) BansByChannel(username string) ([]Ban, error) {
-	return s.driver.BansByChannel(username)
+func (s *Storage) BansByChannel(username string, after Cursor) (*ManyBan, error) {
+	return s.driver.BansByChannel(username, after)
 }
 
 func (s *Storage) Shutdown() error {
@@ -107,10 +116,11 @@ func (d *CassandraDriver) Channels() ([]Channel, error) {
 	return all, nil
 }
 
-func (d *CassandraDriver) BansByUser(username string) ([]Ban, error) {
+func (d *CassandraDriver) BansByUser(username string, after Cursor) (*ManyBan, error) {
 	iter := d.s.Query(`SELECT channel_name, user_name, at, messages, sub
     FROM hammertrack.mod_messages_by_user_name WHERE user_name=?`, username).
 		WithContext(d.ctx).
+		PageState(after).
 		Iter()
 
 	var (
@@ -128,14 +138,20 @@ func (d *CassandraDriver) BansByUser(username string) ([]Ban, error) {
 	if err = scanner.Err(); err != nil {
 		return nil, errors.Wrap(err)
 	}
-	return all, nil
+	return &ManyBan{
+		Data: all,
+		Pagination: &Pagination{
+			After: Cursor(iter.PageState()).Encode(),
+		},
+	}, nil
 }
 
-func (d *CassandraDriver) BansByChannel(username string) ([]Ban, error) {
+func (d *CassandraDriver) BansByChannel(username string, after Cursor) (*ManyBan, error) {
 	iter := d.s.Query(`SELECT channel_name, user_name, at, messages, sub
     FROM hammertrack.mod_messages_by_channel_name
     WHERE channel_name=? AND month = ?`, username, time.Now().Month()).
 		WithContext(d.ctx).
+		PageState(after).
 		Iter()
 
 	var (
@@ -153,7 +169,12 @@ func (d *CassandraDriver) BansByChannel(username string) ([]Ban, error) {
 	if err = scanner.Err(); err != nil {
 		return nil, errors.Wrap(err)
 	}
-	return all, nil
+	return &ManyBan{
+		Data: all,
+		Pagination: &Pagination{
+			After: Cursor(iter.PageState()).Encode(),
+		},
+	}, nil
 }
 
 func (d *CassandraDriver) Close() error {
@@ -197,6 +218,7 @@ func Cassandra() *CassandraDriver {
 	cluster.Keyspace = DBKeyspace
 	cluster.ProtoVersion = 4
 	cluster.Consistency = gocql.Quorum
+	cluster.PageSize = 2
 
 	ctx, cancel := context.WithCancel(context.Background())
 	ctxPing, cancelPing := context.WithTimeout(ctx, time.Duration(DBConnTimeoutSeconds)*time.Second)
