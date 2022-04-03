@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/etag"
 	"github.com/hammertrack/tracker/errors"
 	"github.com/hammertrack/tracker/logger"
 )
@@ -47,9 +48,11 @@ func main() {
 		AllowHeaders: "Origin, Content-Type, Accept",
 		AllowMethods: "GET",
 	}))
-
 	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestSpeed,
+	}))
+	app.Use(etag.New(etag.Config{
+		Weak: false,
 	}))
 	app.Use(useSecurity)
 	app.Use(use404)
