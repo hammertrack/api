@@ -17,6 +17,7 @@ var (
 	DBUser               string
 	DBPassword           string
 	DBConnTimeoutSeconds int
+	DBPageSize           int
 
 	Debug                 bool
 	ServerReadTimeout     int
@@ -89,6 +90,7 @@ func LoadConfig() {
 	DBUser = Env("DB_USER", "tracker")
 	DBPassword = Env("DB_PASSWORD", "unsafepassword")
 	DBConnTimeoutSeconds = Env("DB_CONN_TIMEOUT_SECONDS", 20)
+	DBPageSize = Env("DB_PAGE_SIZE", 200)
 
 	Debug = Env("DEBUG", false)
 	ServerReadTimeout = Env("SERVER_READ_TIMEOUT", 1)

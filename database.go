@@ -218,7 +218,7 @@ func Cassandra() *CassandraDriver {
 	cluster.Keyspace = DBKeyspace
 	cluster.ProtoVersion = 4
 	cluster.Consistency = gocql.Quorum
-	cluster.PageSize = 2
+	cluster.PageSize = DBPageSize
 
 	ctx, cancel := context.WithCancel(context.Background())
 	ctxPing, cancelPing := context.WithTimeout(ctx, time.Duration(DBConnTimeoutSeconds)*time.Second)
