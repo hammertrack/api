@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 	"reflect"
 	"strconv"
@@ -77,7 +78,9 @@ func conv(v string, to reflect.Kind) any {
 
 func Env[T SupportStringconv](key string, def T) T {
 	if v, ok := os.LookupEnv(key); ok {
-		return conv(v, reflect.TypeOf(def).Kind()).(T)
+		val := conv(v, reflect.TypeOf(def).Kind()).(T)
+		log.Printf("[%s] => %v", key, val)
+		return val
 	}
 	return def
 }
