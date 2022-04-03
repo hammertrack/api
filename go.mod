@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/gocql/gocql v1.0.0
 	github.com/gofiber/fiber/v2 v2.31.0
-	github.com/hammertrack/tracker v0.0.0-20220402202227-5d78e1f1d0ea
+	github.com/hammertrack/tracker v0.0.0-20220403160857-0766f9fa4a5f
 	github.com/joho/godotenv v1.4.0
 )
 

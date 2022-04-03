@@ -138,10 +138,14 @@ func (d *CassandraDriver) BansByUser(username string, after Cursor) (*ManyBan, e
 	if err = scanner.Err(); err != nil {
 		return nil, errors.Wrap(err)
 	}
+	cursor, err := Cursor(iter.PageState()).Obscure()
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
 	return &ManyBan{
 		Data: all,
 		Pagination: &Pagination{
-			After: Cursor(iter.PageState()).Encode(),
+			After: cursor,
 		},
 	}, nil
 }
@@ -169,10 +173,14 @@ func (d *CassandraDriver) BansByChannel(username string, after Cursor) (*ManyBan
 	if err = scanner.Err(); err != nil {
 		return nil, errors.Wrap(err)
 	}
+	cursor, err := Cursor(iter.PageState()).Obscure()
+	if err != nil {
+		return nil, errors.Wrap(err)
+	}
 	return &ManyBan{
 		Data: all,
 		Pagination: &Pagination{
-			After: Cursor(iter.PageState()).Encode(),
+			After: cursor,
 		},
 	}, nil
 }

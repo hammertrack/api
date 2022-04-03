@@ -9,6 +9,8 @@ import (
 	"github.com/joho/godotenv"
 )
 
+var ErrUnsupportedSecretLength = errors.New("secret length must be 256 bits or 32 bytes")
+
 var (
 	APIPort              string
 	DBHost               string
@@ -18,6 +20,8 @@ var (
 	DBPassword           string
 	DBConnTimeoutSeconds int
 	DBPageSize           int
+	DBCursorSecretString string
+	DBCursorSecret       []byte
 
 	Debug                 bool
 	ServerReadTimeout     int
@@ -91,6 +95,8 @@ func LoadConfig() {
 	DBPassword = Env("DB_PASSWORD", "unsafepassword")
 	DBConnTimeoutSeconds = Env("DB_CONN_TIMEOUT_SECONDS", 20)
 	DBPageSize = Env("DB_PAGE_SIZE", 200)
+	DBCursorSecretString = Env("DB_CURSOR_SECRET", "unsafesecret")
+	DBCursorSecret = []byte(DBCursorSecretString)
 
 	Debug = Env("DEBUG", false)
 	ServerReadTimeout = Env("SERVER_READ_TIMEOUT", 1)
@@ -101,4 +107,8 @@ func LoadConfig() {
 	ServerProxyHeader = Env("SERVER_PROXY_HEADER", "")
 	ServerBodyLimitBytes = Env("SERVER_BODY_LIMIT_BYTES", 1*1024*1024)
 	ServerConcurrency = Env("SERVER_CONCURRENCY", 256*1024)
+
+	if len(DBCursorSecret) != 32 {
+		errors.WrapFatal(ErrUnsupportedSecretLength)
+	}
 }

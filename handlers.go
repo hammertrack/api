@@ -12,9 +12,15 @@ type BanHandler struct {
 func (b *BanHandler) UserEndpoint(ctx *fiber.Ctx) error {
 	// see channel endpoint's note
 	username, after := ctx.Params("username"), ctx.Query("after")
-	var cursor Cursor
+	var (
+		cursor Cursor
+		err    error
+	)
 	if after != "" {
-		cursor = cursorFromString(after)
+		cursor, err = cursorFromString(after)
+		if err != nil {
+			return ctx.SendStatus(fiber.StatusBadRequest)
+		}
 	}
 	if username == "" {
 		return ctx.SendStatus(fiber.StatusBadRequest)
@@ -35,9 +41,15 @@ func (b *BanHandler) ChannelEndpoint(ctx *fiber.Ctx) error {
 	//
 	// keep track of every value returned from the context.
 	username, after := ctx.Params("channel"), ctx.Query("after")
-	var cursor Cursor
+	var (
+		cursor Cursor
+		err    error
+	)
 	if after != "" {
-		cursor = cursorFromString(after)
+		cursor, err = cursorFromString(after)
+		if err != nil {
+			return ctx.SendStatus(fiber.StatusBadRequest)
+		}
 	}
 	if username == "" {
 		return ctx.SendStatus(fiber.StatusBadRequest)

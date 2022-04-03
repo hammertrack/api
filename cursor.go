@@ -1,24 +1,24 @@
 package main
 
 import (
-	"encoding/base64"
-
+	"github.com/hammertrack/tracker/errors"
 	"github.com/hammertrack/tracker/utils"
 )
 
 type Cursor []byte
 
-func (c Cursor) Encode() string {
-	return base64.URLEncoding.EncodeToString(c)
+func (c Cursor) Obscure() (string, error) {
+	b, err := encrypt(c, DBCursorSecret)
+	if err != nil {
+		return "", err
+	}
+	return utils.ByteToStr(b), nil
 }
 
-func cursorFromString(s string) Cursor {
-	// TODO - maybe we could minimize memory allocations reusing buffers from
-	// other cursors by using a pool of buffers
-	dbuf := make([]byte, len(s))
-	n, err := base64.URLEncoding.Decode(dbuf, utils.StrToByte(s))
+func cursorFromString(s string) (Cursor, error) {
+	b, err := decrypt(s, DBCursorSecret)
 	if err != nil {
-		panic(err)
+		return nil, errors.Wrap(err)
 	}
-	return Cursor(dbuf[:n])
+	return Cursor(b), nil
 }
