@@ -5,11 +5,13 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/compress"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/etag"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/hammertrack/tracker/errors"
 	"github.com/hammertrack/tracker/logger"
 )
@@ -47,6 +49,17 @@ func main() {
 		AllowOrigins: "https://hammertrack.com, http://127.0.0.1:3000",
 		AllowHeaders: "Origin, Content-Type, Accept",
 		AllowMethods: "GET",
+	}))
+	app.Use(limiter.New(limiter.Config{
+		Max:        30,
+		Expiration: 30 * time.Second,
+		LimitReached: func(ctx *fiber.Ctx) error {
+			return ctx.SendStatus(fiber.StatusTooManyRequests)
+		},
+		// Adjust when we setting up a reverse proxy, load balancer, cdn, etc
+		// KeyGenerator: func (ctx *fiber.Ctx) string {
+		//   return ctx.Get("x-forwarded-for")
+		// },
 	}))
 	app.Use(compress.New(compress.Config{
 		Level: compress.LevelBestSpeed,
