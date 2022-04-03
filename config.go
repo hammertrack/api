@@ -17,6 +17,16 @@ var (
 	DBUser               string
 	DBPassword           string
 	DBConnTimeoutSeconds int
+
+	Debug                 bool
+	ServerReadTimeout     int
+	ServerWriteTimeout    int
+	ServerIdleTimeout     int
+	ServerReadBufferSize  int
+	ServerWriteBufferSize int
+	ServerProxyHeader     string
+	ServerBodyLimitBytes  int
+	ServerConcurrency     int
 )
 
 type SupportStringconv interface {
@@ -79,4 +89,14 @@ func LoadConfig() {
 	DBUser = Env("DB_USER", "tracker")
 	DBPassword = Env("DB_PASSWORD", "unsafepassword")
 	DBConnTimeoutSeconds = Env("DB_CONN_TIMEOUT_SECONDS", 20)
+
+	Debug = Env("DEBUG", false)
+	ServerReadTimeout = Env("SERVER_READ_TIMEOUT", 1)
+	ServerWriteTimeout = Env("SERVER_WRITE_TIMEOUT", 1)
+	ServerIdleTimeout = Env("SERVER_IDLE_TIMEOUT", 30)
+	ServerReadBufferSize = Env("SERVER_READ_BUFFER_SIZE", 4096)
+	ServerWriteBufferSize = Env("SERVER_WRITE_BUFFER_SIZE", 4096)
+	ServerProxyHeader = Env("SERVER_PROXY_HEADER", "")
+	ServerBodyLimitBytes = Env("SERVER_BODY_LIMIT_BYTES", 1*1024*1024)
+	ServerConcurrency = Env("SERVER_CONCURRENCY", 256*1024)
 }

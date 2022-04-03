@@ -35,7 +35,27 @@ func main() {
 	b := NewBanHandler(sto)
 
 	log.Print("spawning server...")
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		// Limits request body (B)
+		BodyLimit: ServerBodyLimitBytes,
+		// Max. number of concurrent conns
+		Concurrency:  ServerConcurrency,
+		ReadTimeout:  time.Duration(ServerReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(ServerWriteTimeout) * time.Second,
+		IdleTimeout:  time.Duration(ServerIdleTimeout) * time.Second,
+		// Buffer size for reading each request. This also limits the header size,
+		// so increase if big cookies or URIS are included
+		ReadBufferSize: ServerReadBufferSize,
+		// Buffer size for writing each response
+		WriteBufferSize: ServerWriteBufferSize,
+		// Adjust when behind a cdn, load balancer, reverse proxy, etc. This will
+		// set the ip of ctx.IP() to the value of the header of the given key
+		ProxyHeader: ServerProxyHeader,
+		// Rejects non-GET requests. The request sizse is limited by ReadBufferSize
+		// if enabled. Useful as anti-DoS protection
+		GETOnly:           true,
+		EnablePrintRoutes: Debug,
+	})
 
 	api := app.Group("/api", useSecurity)
 
