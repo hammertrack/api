@@ -12,6 +12,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/etag"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/gofiber/fiber/v2/middleware/monitor"
 	"github.com/hammertrack/tracker/errors"
 	"github.com/hammertrack/tracker/logger"
 )
@@ -64,6 +65,8 @@ func main() {
 	v1.Get("/ban/user/:username", b.UserEndpoint)
 	// Bans of the the channel
 	v1.Get("/ban/channel/:channel", b.ChannelEndpoint)
+
+	app.Get("/metrics", monitor.New())
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "https://hammertrack.com, http://127.0.0.1:3000",
