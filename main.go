@@ -58,16 +58,12 @@ func main() {
 		EnablePrintRoutes: Debug,
 	})
 
-	api := app.Group("/api", useSecurity)
-
-	v1 := api.Group("/v1")
-	// Bans of `username`
-	v1.Get("/ban/user/:username", b.UserEndpoint)
-	// Bans of the the channel
-	v1.Get("/ban/channel/:channel", b.ChannelEndpoint)
-
-	app.Get("/metrics", monitor.New())
-
+	app.Use(compress.New(compress.Config{
+		Level: compress.LevelBestSpeed,
+	}))
+	app.Use(etag.New(etag.Config{
+		Weak: false,
+	}))
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "https://hammertrack.com, http://127.0.0.1:3000",
 		AllowHeaders: "Origin, Content-Type, Accept",
@@ -84,13 +80,18 @@ func main() {
 		//   return ctx.Get("x-forwarded-for")
 		// },
 	}))
-	app.Use(compress.New(compress.Config{
-		Level: compress.LevelBestSpeed,
-	}))
-	app.Use(etag.New(etag.Config{
-		Weak: false,
-	}))
 	app.Use(useSecurity)
+
+	api := app.Group("/api", useSecurity)
+
+	v1 := api.Group("/v1")
+	// Bans of `username`
+	v1.Get("/ban/user/:username", b.UserEndpoint)
+	// Bans of the the channel
+	v1.Get("/ban/channel/:channel", b.ChannelEndpoint)
+
+	app.Get("/metrics", monitor.New())
+
 	app.Use(use404)
 
 	go func() {
