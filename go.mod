@@ -1,4 +1,4 @@
-module pedro.to/hammertrace/api
+module github.com/hammertrace/api
 
 go 1.18
 
