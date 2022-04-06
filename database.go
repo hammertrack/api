@@ -36,11 +36,11 @@ const (
 )
 
 type Ban struct {
-	Channel    string           `json:"ch,omitempty"`
-	Username   string           `json:"usr,omitempty"`
-	At         time.Time        `json:"ts,omitempty"`
-	Recent     []string         `json:"msgs,omitempty"`
-	Subscribed SubscribedStatus `json:"sub,omitempty"`
+	Channel    string           `json:"c,omitempty"`
+	Username   string           `json:"u,omitempty"`
+	At         int64            `json:"t,omitempty"`
+	Recent     []string         `json:"m,omitempty"`
+	Subscribed SubscribedStatus `json:"s,omitempty"`
 }
 
 type Pagination struct {
@@ -48,8 +48,8 @@ type Pagination struct {
 }
 
 type ManyBan struct {
-	Data       []Ban
-	Pagination *Pagination
+	Data       []Ban       `json:"data"`
+	Pagination *Pagination `json:"pagination"`
 }
 
 type Channel string
